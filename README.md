@@ -30,6 +30,8 @@ Mở bằng liên kết **Giao ban hằng ngày** trên thanh tiêu đề (đị
 - **Mỗi buổi:** chọn ngày, tích người vắng, bấm "Chuẩn bị biên bản". Ô "Nội dung thêm" là tùy chọn (quán triệt công văn, việc đột xuất). Sửa chữ nếu cần rồi bấm "Chốt và tải Word".
 - **Luân phiên:** mỗi buổi lấy 2 người đầu lượt đang có mặt (bỏ qua chủ tọa), chốt xong họ chuyển xuống cuối. Người vắng giữ chỗ nên phát biểu ở buổi sau. Ý kiến chọn câu người đó lâu chưa dùng nhất.
 - **Đầu ra:** file Word `Bien_ban_giao_ban_dd.mm.yyyy.docx` theo mẫu biên bản của tổ; tạo nhiều ngày một lúc thì tải về file nén.
+- **Gửi báo trước giờ họp (tùy chọn, tắt sẵn):** mục 6 trên trang Giao ban. Tới giờ đặt (mặc định 07:00, T2–T6) phần mềm chốt biên bản hôm nay rồi gửi tên người phát biểu, ý kiến dự kiến và file Word qua email (Gmail, dùng mật khẩu ứng dụng) và/hoặc Telegram bot. Phần mềm phải đang mở vào giờ đó. Đây là phần duy nhất đưa dữ liệu ra khỏi máy. Mật khẩu và token lưu dạng chữ thường trong `work/giaoban.json`.
+- **Telegram:** tạo bot với @BotFather để lấy token. Người nhận (bạn hoặc khách) mở `t.me/<tên_bot>` và bấm Start; bot không nhắn được cho người chưa bấm Start. Sau đó bấm "Tìm người đã bấm Start với bot" để lấy chat_id. Muốn gửi cho cả nhóm thì thêm bot vào nhóm Telegram rồi làm tương tự.
 - Buổi đã chốt vẫn sửa được chữ nhưng không đổi người. Muốn làm lại lượt thì "Huỷ buổi đã chốt gần nhất".
 
 ## Cài đặt

@@ -41,6 +41,13 @@ DEFAULT = {
             "Đ/c chủ tọa nhất trí với các ý kiến tham gia. Yêu cầu CBCS thực hiện nghiêm các văn bản đã "
             "quán triệt và thực hiện theo đúng quy định của pháp luật."),
     },
+    "thong_bao": {      # gửi trước giờ giao ban (tắt mặc định: đây là phần duy nhất đưa dữ liệu ra ngoài)
+        "bat": False, "gio_gui": "07:00", "dinh_kem": True,
+        "email": {"bat": False, "smtp": "smtp.gmail.com", "cong": 465, "tai_khoan": "", "mat_khau": "",
+                  "nguoi_nhan": ""},
+        "telegram": {"bat": False, "token": "", "chat_ids": ""},
+        "da_gui": "", "nhat_ky": [],
+    },
     "thanh_vien": [],   # {id, ten, chuc_vu, luan_phien, vang_dai_ngay, y_kien: [str]}
     "hang_doi": [],     # thứ tự lượt phát biểu
     "lich_su": {},      # "yyyy-mm-dd" -> biên bản đã chốt
@@ -92,6 +99,10 @@ class GiaoBan:
                 saved = json.loads(self.path.read_text(encoding="utf-8"))
                 self.data.update(saved)
                 self.data["cau_hinh"] = {**DEFAULT["cau_hinh"], **saved.get("cau_hinh", {})}
+                tb = saved.get("thong_bao", {})
+                self.data["thong_bao"] = {**copy.deepcopy(DEFAULT["thong_bao"]), **tb,
+                                          "email": {**DEFAULT["thong_bao"]["email"], **tb.get("email", {})},
+                                          "telegram": {**DEFAULT["thong_bao"]["telegram"], **tb.get("telegram", {})}}
             except Exception:
                 pass
 
@@ -264,6 +275,52 @@ class GiaoBan:
                 continue
             done.append(self.commit(self.draft(d))["ngay"])
         return done
+
+    # ---------- thông báo trước giờ họp
+    MASK = "••••••"
+
+    def public(self):
+        """Dữ liệu gửi lên giao diện: che mật khẩu email và token bot."""
+        d = copy.deepcopy(self.data)
+        tb = d["thong_bao"]
+        for sec, k in (("email", "mat_khau"), ("telegram", "token")):
+            if tb[sec].get(k):
+                tb[sec][k] = self.MASK
+        return d
+
+    def set_notify(self, cfg: dict):
+        tb = self.data["thong_bao"]
+        for k in ("bat", "gio_gui", "dinh_kem"):
+            if k in cfg:
+                tb[k] = cfg[k]
+        for sec, secret in (("email", "mat_khau"), ("telegram", "token")):
+            new = dict(cfg.get(sec, {}))
+            if new.get(secret) == self.MASK:
+                new.pop(secret)
+            tb[sec].update(new)
+
+    def notice(self, bb):
+        """Tiêu đề và nội dung tin nhắn báo trước cho một buổi."""
+        d = parse_date(bb["ngay"])
+        subject = f"Giao ban {THU[d.weekday()]}, {d:%d/%m/%Y} lúc {bb.get('gio_bat_dau', '')}"
+        lines = ["Phát biểu: " + (", ".join("đ/c " + self._name(bb, p["id"]) for p in bb["phat_bieu"]) or "chưa có")]
+        if bb.get("vang"):
+            lines.append("Vắng: " + ", ".join(self._name(bb, v["id"]) + (f" ({v['ly_do']})" if v.get("ly_do") else "")
+                                             for v in bb["vang"]))
+        if bb.get("chu_toa"):
+            lines.append("Chủ tọa: đ/c " + self._name(bb, bb["chu_toa"]))
+        lines.append("")
+        lines.append("Ý kiến dự kiến:")
+        for p in bb["phat_bieu"]:
+            lines.append(f"- Đ/c {self._name(bb, p['id'])}: {p.get('text') or '(chưa có trong kho ý kiến)'}")
+        lines.append("")
+        lines.append("Biên bản dự thảo do phần mềm lập sẵn. Có thay đổi thì sửa trong phần mềm, mục Giao ban.")
+        return subject, "\n".join(lines)
+
+    def log(self, text):
+        nk = self.data["thong_bao"].setdefault("nhat_ky", [])
+        nk.insert(0, text)
+        del nk[30:]
 
     # ---------- xem trước lượt
     def preview_rotation(self, k=10):

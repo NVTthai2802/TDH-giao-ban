@@ -16,7 +16,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
 
-from core import exportdocx, giaoban, ingest, library, llm, style, transform
+from core import exportdocx, giaoban, ingest, library, llm, notify, style, transform
 from core.paths import ROOT
 
 WORK = ROOT / "work"
@@ -151,7 +151,7 @@ class Handler(BaseHTTPRequestHandler):
 
     # ---------- giao ban
     def _gb_view(self):
-        return {**GB.data, "goi_y_ngay": GB.suggest_date(), "du_kien": GB.preview_rotation(10)}
+        return {**GB.public(), "goi_y_ngay": GB.suggest_date(), "du_kien": GB.preview_rotation(10)}
 
     def _gb_get(self, op, q):
         with LOCK:
@@ -199,6 +199,18 @@ class Handler(BaseHTTPRequestHandler):
             res["xoa"] = GB.undo_latest()
         elif op == "batch":
             res["ngay"] = GB.batch(data["tu"], data["den"])
+        elif op == "notify_cfg":
+            GB.set_notify(data)
+        elif op == "notify_test":
+            GB.set_notify(data)
+            res["ket_qua"] = send_notice(GB.suggest_date() if not data.get("ngay") else data["ngay"], test=True)
+        elif op == "tg_chats":
+            GB.set_notify(data)
+            tok = GB.data["thong_bao"]["telegram"]["token"]
+            if not tok:
+                raise ValueError("Nhập token bot trước.")
+            res["bot"] = notify.tg_me(tok).get("username")
+            res["chats"] = notify.tg_chats(tok)
         else:
             raise ValueError("không tìm thấy")
         GB.save()
@@ -295,6 +307,55 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"error": str(e)}, 400)
 
 
+def send_notice(ngay, test=False):
+    """Lập (và chốt nếu chưa chốt) biên bản ngày `ngay`, gửi báo trước qua các kênh đang bật.
+    Gọi khi đang giữ LOCK."""
+    tb = GB.data["thong_bao"]
+    bb = GB.draft(ngay)
+    if not bb.get("da_chot") and not test:
+        bb = GB.commit(bb)
+    subject, text = GB.notice(bb)
+    att = None
+    if tb.get("dinh_kem"):
+        att = WORK / "giaoban" / f"Bien_ban_giao_ban_{giaoban.parse_date(bb['ngay']):%d.%m.%Y}.docx"
+        att.parent.mkdir(parents=True, exist_ok=True)
+        GB.export_docx(bb, att)
+    if test:
+        subject = "[GỬI THỬ] " + subject
+    out = notify.send_all(tb, subject, text, att)
+    GB.log(time.strftime("%d/%m %H:%M ") + ("(thử) " if test else "") + "; ".join(out))
+    GB.save()
+    return out
+
+
+def notice_loop():
+    """Mỗi phút kiểm tra: ngày T2–T6, đã tới giờ gửi, hôm nay chưa gửi, chưa quá 12h trưa -> gửi."""
+    import datetime as dt
+    while True:
+        time.sleep(60)
+        try:
+            with LOCK:
+                tb = GB.data["thong_bao"]
+                now = dt.datetime.now()
+                today = now.date().isoformat()
+                if not tb.get("bat") or now.weekday() >= 5 or tb.get("da_gui") == today or now.hour >= 12:
+                    continue
+                hh, mm = (int(x) for x in (tb.get("gio_gui") or "07:00").split(":")[:2])
+                if (now.hour, now.minute) < (hh, mm):
+                    continue
+                last = GB.latest_date()
+                if last and last > today:      # đã chốt trước cả ngày sau: không gửi lại
+                    tb["da_gui"] = today
+                    GB.save()
+                    continue
+                tb["da_gui"] = today            # đánh dấu trước để lỗi mạng không gửi lặp mỗi phút
+                send_notice(today)
+        except Exception as e:  # noqa: BLE001
+            with LOCK:
+                GB.log(time.strftime("%d/%m %H:%M ") + f"LỖI: {e}")
+                GB.save()
+
+
 def main():
     global STATE
     ap = argparse.ArgumentParser()
@@ -348,6 +409,7 @@ def main():
     for sig in (getattr(signal, "SIGTERM", None), getattr(signal, "SIGBREAK", None)):
         if sig:
             signal.signal(sig, lambda *_: (_ for _ in ()).throw(KeyboardInterrupt))
+    threading.Thread(target=notice_loop, daemon=True).start()
     print("Đang chạy tại", url, "- đóng cửa sổ này để tắt.")
     threading.Timer(1, lambda: webbrowser.open(url)).start()
     try:
