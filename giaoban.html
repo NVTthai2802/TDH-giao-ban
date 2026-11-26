@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Giao ban hằng ngày</title>
+<style>
+  :root { --b:#d0d5dd; --muted:#667085; --pri:#1d4ed8; --warn:#fef3c7; --bad:#fee2e2; }
+  * { box-sizing: border-box; }
+  body { font: 15px/1.45 "Segoe UI", Arial, sans-serif; margin: 0; background: #f6f7f9; color: #101828; }
+  header { background: #0f2a5f; color: #fff; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; }
+  header small { opacity: .8; }
+  main { max-width: 1280px; margin: 0 auto; padding: 16px 24px 80px; }
+  .card { background: #fff; border: 1px solid var(--b); border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; }
+  h2 { font-size: 17px; margin: 0 0 10px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+  label { font-size: 13px; color: var(--muted); display: block; }
+  input, textarea, select { width: 100%; font: inherit; padding: 6px 8px; border: 1px solid var(--b); border-radius: 6px; }
+  textarea { min-height: 120px; resize: vertical; }
+  button { font: inherit; padding: 7px 14px; border-radius: 6px; border: 1px solid var(--b); background: #fff; cursor: pointer; }
+  button.pri { background: var(--pri); color: #fff; border-color: var(--pri); }
+  button:disabled { opacity: .5; cursor: default; }
+  .sec { border-left: 4px solid var(--b); }
+  .sec.drop { opacity: .55; }
+  .sec.l1 { border-left-color: #0f2a5f; } .sec.l2 { border-left-color: #3b82f6; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+  .orig { white-space: pre-wrap; background: #f9fafb; border: 1px solid #eaecf0; border-radius: 6px; padding: 8px; font-size: 14px; max-height: 260px; overflow: auto; }
+  .tag { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 10px; margin: 2px 4px 2px 0; }
+  .t-style { background: #ffedd5; }
+  .t-warn { background: var(--warn); } .t-bad { background: var(--bad); } .t-ok { background: #dcfce7; } .t-ai { background: #e0e7ff; }
+  .muted { color: var(--muted); font-size: 13px; }
+  #status { position: fixed; bottom: 0; left: 0; right: 0; background: #101828; color: #fff; padding: 8px 24px; font-size: 14px; display: none; }
+  .title-in { font-weight: 600; }
+</style>
+</head>
+<body>
+<header>
+  <div><a href="/" style="color:#fff">Lập kế hoạch Công an xã</a> &nbsp; <b>Giao ban hằng ngày</b> <small>· chạy trên máy này, không gửi dữ liệu ra ngoài</small></div>
+  <div class="muted" style="color:#cbd5e1">Lịch họp: thứ 2 đến thứ 6, kể cả ngày lễ</div>
+</header>
+<main>
+  <div class="card">
+    <h2>1. Lập biên bản giao ban</h2>
+    <div class="row">
+      <div style="width:200px"><label>Ngày họp</label><input type="date" id="ngay"></div>
+      <div style="align-self:end"><button class="pri" onclick="makeDraft()">Chuẩn bị biên bản</button></div>
+      <div style="align-self:end"><button onclick="undo()">Huỷ buổi đã chốt gần nhất</button></div>
+    </div>
+    <div style="margin-top:10px"><label>Người vắng hôm đó (tích chọn, ghi lý do)</label><div id="vang"></div></div>
+    <div id="draft" style="display:none;margin-top:12px"></div>
+  </div>
+
+  <div class="card">
+    <h2>2. Lượt phát biểu dự kiến</h2>
+    <p class="muted">10 buổi tới, tính khi không ai vắng thêm. Người vắng đúng lượt sẽ được dồn sang buổi sau.</p>
+    <div id="dukien"></div>
+    <button onclick="resetRot()" style="margin-top:8px">Xếp lại lượt theo thứ tự danh sách</button>
+  </div>
+
+  <div class="card">
+    <h2>3. Danh sách tổ và kho ý kiến</h2>
+    <p class="muted">Thứ tự trong bảng là thứ tự lượt phát biểu. Mỗi người có kho ý kiến riêng: mỗi ý kiến cách nhau
+      <b>một dòng trống</b>. Phần mềm chọn ý kiến người đó lâu chưa dùng nhất.</p>
+    <div id="members"></div>
+    <div class="row" style="margin-top:8px">
+      <button onclick="addMember()">Thêm người</button>
+      <button onclick="toggle('bulk')">Dán nhanh danh sách</button>
+      <button class="pri" onclick="saveMembers()">Lưu danh sách</button>
+    </div>
+    <div id="bulk" style="display:none;margin-top:8px">
+      <textarea id="bulktext" placeholder="Mỗi dòng một người: Họ tên | Chức vụ&#10;Lê Tuấn Anh | Phó trưởng Công an xã&#10;Ngô Thanh Sơn | Cán bộ"></textarea>
+      <button onclick="bulkAdd()">Thêm vào cuối danh sách</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>4. Thông tin cố định của cuộc họp</h2>
+    <div class="grid" id="cfg"></div>
+    <button class="pri" style="margin-top:8px" onclick="saveCfg()">Lưu thông tin</button>
+  </div>
+
+  <div class="card">
+    <h2>5. Tạo biên bản cho nhiều ngày</h2>
+    <p class="muted">Chốt liền các ngày thứ 2–6 trong khoảng, không ai vắng ngoài người đang vắng dài ngày, rồi tải về một file nén.
+      Ngày đã chốt trước đó giữ nguyên.</p>
+    <div class="row">
+      <div style="width:200px"><label>Từ ngày</label><input type="date" id="tu"></div>
+      <div style="width:200px"><label>Đến ngày</label><input type="date" id="den"></div>
+      <div style="align-self:end"><button class="pri" onclick="batch()">Chốt và tải về</button></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>6. Các buổi đã chốt</h2>
+    <div id="hist"></div>
+  </div>
+</main>
+<div id="status"></div>
+
+<script>
+const CFG = [
+  ["co_quan","Cơ quan (dòng trên, in hoa)"], ["to","Tổ (dòng dưới, in hoa)"], ["dia_danh","Địa danh ghi ngày"],
+  ["ten_to","Tên tổ trong câu mở đầu"], ["gio_bat_dau","Giờ bắt đầu (vd 07h30')"], ["gio_ket_thuc","Giờ kết thúc (vd 08h30')"],
+  ["chu_toa","Chủ tọa","member"], ["thu_ky","Thư ký","member"], ["so_nguoi_y_kien","Số người phát biểu mỗi buổi","num"],
+  ["dia_diem","Địa điểm",1], ["noi_dung_mac_dinh","Nội dung chủ tọa mặc định (mỗi dòng một gạch đầu dòng)",1],
+  ["ket_luan_mac_dinh","Kết luận của chủ tọa mặc định",1],
+];
+let G = null, M = [], D = null;
+const $ = id => document.getElementById(id);
+const esc = s => String(s??"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const vn = iso => { const [y,m,d] = iso.split("-"); return `${d}/${m}/${y}`; };
+const THU = ["Chủ nhật","Thứ 2","Thứ 3","Thứ 4","Thứ 5","Thứ 6","Thứ 7"];
+const thu = iso => THU[new Date(iso+"T00:00").getDay()];
+function status(t){ const e=$("status"); e.style.display=t?"block":"none"; e.textContent=t||""; }
+function toggle(id){ const e=$(id); e.style.display = e.style.display==="none" ? "block" : "none"; }
+async function api(path, body){
+  const r = await fetch(path, body===undefined ? {} : {method:"POST", body: JSON.stringify(body)});
+  const j = await r.json(); if (j.error) { alert(j.error); throw j.error; } return j;
+}
+const name = id => (G.thanh_vien.find(m=>m.id===id)||{}).ten || "";
+function download(url){ const a=document.createElement("a"); a.href=url; document.body.appendChild(a); a.click(); a.remove(); }
+
+async function load(){ G = await api("/api/gb/state"); M = JSON.parse(JSON.stringify(G.thanh_vien)); renderAll(); $("ngay").value = G.goi_y_ngay; }
+function setState(s){ G = s; renderCfg(); renderVang(); renderDukien(); renderHist(); }
+function renderAll(){ renderCfg(); renderMembers(); renderVang(); renderDukien(); renderHist(); }
+
+function renderCfg(){
+  const c = G.cau_hinh;
+  $("cfg").innerHTML = CFG.map(([k,l,t]) => {
+    const full = t===1 ? ' style="grid-column:1/3"' : "";
+    let inp;
+    if (t==="member") inp = `<select id="cfg_${k}"><option value="">(chưa chọn)</option>` +
+        G.thanh_vien.map(m=>`<option value="${m.id}" ${c[k]===m.id?"selected":""}>${esc(m.ten)}</option>`).join("") + "</select>";
+    else if (t===1) inp = `<textarea id="cfg_${k}" style="min-height:70px">${esc(c[k])}</textarea>`;
+    else inp = `<input id="cfg_${k}" ${t==="num"?'type="number" min="1" max="10"':""} value="${esc(c[k])}">`;
+    return `<div${full}><label>${l}</label>${inp}</div>`;
+  }).join("");
+}
+async function saveCfg(){
+  const body = {}; CFG.forEach(([k]) => body[k] = $("cfg_"+k).value);
+  setState((await api("/api/gb/config", body)).state); status("Đã lưu thông tin cuộc họp."); setTimeout(()=>status(""),1500);
+}
+
+function renderMembers(){
+  if (!M.length) { $("members").innerHTML = '<p class="muted">Chưa có ai. Bấm "Thêm người" hoặc "Dán nhanh danh sách".</p>'; return; }
+  $("members").innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:14px">' +
+    '<tr style="text-align:left;color:#667085"><th>#</th><th>Họ tên</th><th>Chức vụ</th><th title="Có tham gia luân phiên phát biểu">Luân phiên</th>' +
+    '<th>Vắng dài ngày (lý do)</th><th>Kho ý kiến</th><th></th></tr>' +
+    M.map((m,i) => `<tr style="border-top:1px solid #eaecf0;vertical-align:top">
+      <td>${i+1}</td>
+      <td><input value="${esc(m.ten)}" oninput="M[${i}].ten=this.value"></td>
+      <td><input value="${esc(m.chuc_vu)}" oninput="M[${i}].chuc_vu=this.value"></td>
+      <td style="text-align:center"><input type="checkbox" style="width:auto" ${m.luan_phien!==false?"checked":""} onchange="M[${i}].luan_phien=this.checked"></td>
+      <td><input value="${esc(m.vang_dai_ngay)}" placeholder="để trống nếu đang làm" oninput="M[${i}].vang_dai_ngay=this.value"></td>
+      <td><button onclick="toggle('yk${i}')">${(m.y_kien||[]).length} ý kiến</button></td>
+      <td style="white-space:nowrap"><button onclick="move(${i},-1)">↑</button><button onclick="move(${i},1)">↓</button>
+        <button onclick="delMember(${i})">Xoá</button></td></tr>
+      <tr><td></td><td colspan="6"><div id="yk${i}" style="display:none">
+        <textarea style="min-height:160px" placeholder="Ý kiến 1...&#10;&#10;Ý kiến 2..."
+          oninput="M[${i}].y_kien=this.value.split(/\\n\\s*\\n/)">${esc((m.y_kien||[]).join("\n\n"))}</textarea></div></td></tr>`).join("") + "</table>";
+}
+function addMember(){ M.push({ten:"", chuc_vu:"", luan_phien:true, vang_dai_ngay:"", y_kien:[]}); renderMembers(); }
+function bulkAdd(){
+  $("bulktext").value.split("\n").forEach(l => { const [t,c] = l.split("|").map(x=>(x||"").trim()); if (t) M.push({ten:t, chuc_vu:c||"", luan_phien:true, vang_dai_ngay:"", y_kien:[]}); });
+  $("bulktext").value = ""; renderMembers();
+}
+function move(i,d){ const j=i+d; if (j<0||j>=M.length) return; [M[i],M[j]]=[M[j],M[i]]; renderMembers(); }
+function delMember(i){ if (confirm("Xoá " + (M[i].ten||"dòng này") + " khỏi danh sách? Biên bản đã chốt vẫn giữ tên.")) { M.splice(i,1); renderMembers(); } }
+async function saveMembers(){
+  const r = await api("/api/gb/members", {thanh_vien: M});
+  setState(r.state); M = JSON.parse(JSON.stringify(G.thanh_vien)); renderMembers();
+  status("Đã lưu danh sách."); setTimeout(()=>status(""),1500);
+}
+async function resetRot(){
+  if (!confirm("Xếp lại lượt phát biểu bắt đầu từ người đầu danh sách?")) return;
+  setState((await api("/api/gb/reset_rotation", {})).state);
+}
+
+function renderVang(){
+  $("vang").innerHTML = G.thanh_vien.length ? G.thanh_vien.map(m => `<div class="row" style="margin:3px 0">
+      <label style="width:240px;color:#101828"><input type="checkbox" style="width:auto" class="vang-cb" data-id="${m.id}" ${m.vang_dai_ngay?"checked":""}> ${esc(m.ten)}</label>
+      <input class="vang-ly" data-id="${m.id}" style="width:420px" placeholder="lý do vắng" value="${esc(m.vang_dai_ngay)}"></div>`).join("")
+    : '<p class="muted">Nhập danh sách tổ ở mục 3 trước.</p>';
+}
+function vangList(){
+  return [...document.querySelectorAll(".vang-cb")].filter(c=>c.checked).map(c => ({
+    id: c.dataset.id, ly_do: document.querySelector(`.vang-ly[data-id="${c.dataset.id}"]`).value.trim()}));
+}
+async function makeDraft(){
+  if (!$("ngay").value) return alert("Chọn ngày họp.");
+  D = (await api("/api/gb/draft", {ngay: $("ngay").value, vang: vangList()})).draft;
+  renderDraft();
+}
+function renderDraft(){
+  const e = $("draft"); e.style.display = "block";
+  const chot = D.da_chot;
+  e.innerHTML = `<div class="card" style="background:#f9fafb">
+    <b>${thu(D.ngay)}, ${vn(D.ngay)}</b> ${chot ? '<span class="tag t-ok">Đã chốt, chỉ sửa được chữ</span>' : '<span class="tag t-warn">Bản nháp, chưa chốt lượt</span>'}
+    <div class="muted">Vắng: ${D.vang.length ? D.vang.map(v=>esc(name(v.id))+(v.ly_do?" ("+esc(v.ly_do)+")":"")).join(", ") : "không ai"}</div>
+    <div class="grid" style="margin-top:8px">
+      <div><label>Giờ bắt đầu</label><input id="d_bd" value="${esc(D.gio_bat_dau)}"></div>
+      <div><label>Giờ kết thúc</label><input id="d_kt" value="${esc(D.gio_ket_thuc)}"></div>
+    </div>
+    <label style="margin-top:8px">Chủ tọa đánh giá, yêu cầu (mỗi dòng một gạch đầu dòng)</label>
+    <textarea id="d_nd" style="min-height:80px">${esc(D.noi_dung)}</textarea>
+    <label style="margin-top:8px">Nội dung thêm của buổi này <span class="muted">(tùy chọn: quán triệt công văn, việc đột xuất... để trống nếu không có)</span></label>
+    <textarea id="d_them" style="min-height:70px">${esc(D.them)}</textarea>
+    <label style="margin-top:8px">Ý kiến tham gia</label>
+    ${D.phat_bieu.length ? D.phat_bieu.map((p,i)=>`<div style="margin:6px 0"><b>Đ/c ${esc(name(p.id))}</b>
+      ${p.text ? "" : ' <span class="tag t-bad">Kho ý kiến trống, hãy nhập</span>'}
+      <textarea id="d_pb${i}" style="min-height:90px">${esc(p.text)}</textarea></div>`).join("")
+      : '<p class="muted">Không còn ai trong lượt (kiểm tra cột "Luân phiên" ở mục 3).</p>'}
+    <label style="margin-top:8px">Kết luận của chủ tọa</label>
+    <textarea id="d_kl" style="min-height:60px">${esc(D.ket_luan)}</textarea>
+    <div class="row" style="margin-top:10px">
+      <button class="pri" onclick="commit()">${chot ? "Lưu sửa và tải Word" : "Chốt và tải Word"}</button>
+      <span class="muted">${chot ? "" : "Khi chốt, những người phát biểu trên chuyển xuống cuối lượt."}</span>
+    </div></div>`;
+}
+async function commit(){
+  D.gio_bat_dau = $("d_bd").value; D.gio_ket_thuc = $("d_kt").value;
+  D.noi_dung = $("d_nd").value; D.them = $("d_them").value; D.ket_luan = $("d_kl").value;
+  D.phat_bieu.forEach((p,i) => p.text = $("d_pb"+i).value);
+  const r = await api("/api/gb/commit", D);
+  setState(r.state);
+  download("/api/gb/docx?ngay=" + D.ngay);
+  D = (await api("/api/gb/draft", {ngay: D.ngay})).draft; renderDraft();
+  $("ngay").value = G.goi_y_ngay;
+}
+async function undo(){
+  const last = Object.keys(G.lich_su).sort().pop();
+  if (!last) return alert("Chưa có buổi nào được chốt.");
+  if (!confirm(`Huỷ biên bản ngày ${vn(last)} và trả lượt phát biểu về như trước buổi đó?`)) return;
+  setState((await api("/api/gb/undo", {})).state); $("draft").style.display="none"; $("ngay").value = G.goi_y_ngay;
+}
+async function batch(){
+  const tu=$("tu").value, den=$("den").value; if (!tu||!den) return alert("Chọn từ ngày và đến ngày.");
+  const r = await api("/api/gb/batch", {tu, den}); setState(r.state);
+  download(`/api/gb/zip?tu=${tu}&den=${den}`); $("ngay").value = G.goi_y_ngay;
+}
+function renderDukien(){
+  $("dukien").innerHTML = G.thanh_vien.length ? '<table style="border-collapse:collapse;font-size:14px">' +
+    G.du_kien.map(x=>`<tr><td style="padding:2px 12px 2px 0">${thu(x.ngay)}, ${vn(x.ngay)}</td><td>${x.nguoi.map(esc).join(", ") || '<span class="muted">không có ai</span>'}</td></tr>`).join("") + "</table>"
+    : '<p class="muted">Chưa có danh sách tổ.</p>';
+}
+function renderHist(){
+  const ks = Object.keys(G.lich_su).sort().reverse();
+  $("hist").innerHTML = ks.length ? '<table style="width:100%;border-collapse:collapse;font-size:14px">' +
+    '<tr style="text-align:left;color:#667085"><th>Ngày</th><th>Phát biểu</th><th>Vắng</th><th></th></tr>' +
+    ks.slice(0,60).map(k => { const b = G.lich_su[k]; const nm = id => (b.ten_snapshot&&b.ten_snapshot[id]||{}).ten || name(id);
+      return `<tr style="border-top:1px solid #eaecf0"><td>${thu(k)}, ${vn(k)}</td><td>${b.phat_bieu.map(p=>esc(nm(p.id))).join(", ")}</td>
+      <td>${b.vang.length}</td><td style="text-align:right"><button onclick="openDay('${k}')">Xem/sửa</button>
+      <button onclick="download('/api/gb/docx?ngay=${k}')">Tải Word</button></td></tr>`; }).join("") + "</table>"
+    : '<p class="muted">Chưa có buổi nào.</p>';
+}
+async function openDay(k){ $("ngay").value = k; D = (await api("/api/gb/draft", {ngay:k})).draft; renderDraft(); window.scrollTo(0,0); }
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+{
+  "_ghi_chu": "Quy tắc viết không để lộ dấu hiệu văn AI (theo Wikipedia: Signs of AI writing). Mỗi quy tắc: mau = biểu thức tìm (regex, không phân biệt hoa thường), loi = nhãn hiện trên giao diện. Từ đã có sẵn trong bản gốc cấp trên thì không bị báo. Sửa, thêm, bớt tuỳ đơn vị.",
+  "tu_cam": [
+    {
+      "mau": "đóng vai trò (then chốt|quan trọng|cốt lõi|là)",
+      "loi": "\"đóng vai trò\": nói rõ làm gì"
+    },
+    {
+      "mau": "là minh chứng",
+      "loi": "\"là minh chứng\": nêu bằng chứng hoặc bỏ"
+    },
+    {
+      "mau": "\\bnhấn mạnh\\b|làm nổi bật",
+      "loi": "\"nhấn mạnh/làm nổi bật\": bỏ hoặc nêu số liệu"
+    },
+    {
+      "mau": "đi sâu vào",
+      "loi": "\"đi sâu vào\": dùng \"xem\", \"phân tích\""
+    },
+    {
+      "mau": "bức tranh",
+      "loi": "\"bức tranh\" (nghĩa bóng): gọi tên cụ thể"
+    },
+    {
+      "mau": "sôi động|đầy sức sống",
+      "loi": "từ quảng cáo: bỏ"
+    },
+    {
+      "mau": "\\btỉ mỉ\\b|tinh vi",
+      "loi": "\"tỉ mỉ/tinh vi\": mô tả cụ thể"
+    },
+    {
+      "mau": "nuôi dưỡng",
+      "loi": "\"nuôi dưỡng\": dùng \"tăng\", \"giúp\""
+    },
+    {
+      "mau": "tận dụng",
+      "loi": "\"tận dụng\": dùng \"dùng\""
+    },
+    {
+      "mau": "đồng bộ với|phù hợp với xu",
+      "loi": "\"đồng bộ với\": dùng \"theo\""
+    },
+    {
+      "mau": "mạnh mẽ|vững chắc",
+      "loi": "\"mạnh mẽ/vững chắc\": thay bằng việc cụ thể"
+    },
+    {
+      "mau": "đa diện|đa chiều",
+      "loi": "\"đa diện/đa chiều\": liệt kê các mặt"
+    },
+    {
+      "mau": "sự tương tác giữa",
+      "loi": "\"sự tương tác giữa\": nói cái nào tác động cái nào"
+    },
+    {
+      "mau": "gặt hái|thu hút sự chú ý",
+      "loi": "\"gặt hái\": bỏ"
+    },
+    {
+      "mau": "trường tồn|bền bỉ",
+      "loi": "\"trường tồn/bền bỉ\": bỏ"
+    },
+    {
+      "mau": "một cách lặng lẽ",
+      "loi": "\"một cách lặng lẽ\": bỏ"
+    },
+    {
+      "mau": "(quan trọng|đáng chú ý|cần lưu ý) là",
+      "loi": "câu rào \"quan trọng là\": nói thẳng"
+    },
+    {
+      "mau": "(^|[.\\n])\\s*(-\\s*)?(ngoài ra|hơn nữa|bên cạnh đó),",
+      "loi": "\"Ngoài ra/Hơn nữa\" đầu câu: bỏ"
+    },
+    {
+      "mau": "đánh dấu bước ngoặt|mở đường cho|dấu ấn sâu đậm|xu hướng rộng lớn",
+      "loi": "thổi phồng tầm quan trọng: nêu sự việc"
+    },
+    {
+      "mau": "ngoạn mục|tuyệt vời|đẳng cấp|không thể bỏ lỡ",
+      "loi": "khen quá đà: bỏ"
+    },
+    {
+      "mau": "các chuyên gia (cho rằng|nhận định)|nhiều người (cho rằng|nhận định)",
+      "loi": "nguồn mơ hồ: ghi tên văn bản, người"
+    },
+    {
+      "mau": "không chỉ[^.]{0,80}mà còn",
+      "loi": "\"không chỉ... mà còn\": viết thẳng hai ý"
+    },
+    {
+      "mau": "không phải là[^.]{0,60}mà là",
+      "loi": "\"không phải là... mà là\": viết thẳng"
+    },
+    {
+      "mau": ",\\s*(góp phần (khẳng định|thể hiện|tạo)|cho thấy|tạo nền tảng cho|phản ánh)[^.,]*\\.",
+      "loi": "đuôi phân tích cuối câu: tách câu hoặc bỏ"
+    },
+    {
+      "mau": "nhìn chung|tóm lại|nói tóm lại",
+      "loi": "câu tóm tắt nhắc lại: bỏ"
+    },
+    {
+      "mau": "\\[[^\\]]{1,30}\\]|\\bxx\\b|\\bTBD\\b|XXX",
+      "loi": "còn chỗ trống chưa điền"
+    }
+  ],
+  "tu_sua": {
+    "_ghi_chu": "Các lỗi phần mềm tự sửa sau khi AI viết xong",
+    "bo_cau_tro_ly": [
+      "^(chắc chắn rồi|dưới đây là|sau đây là|đây là (bản|nội dung))[^\\n]*\\n?",
+      "\\n?[^\\n]*(hy vọng|nếu cần (thêm|chỉnh)|hãy cho tôi biết)[^\\n]*$"
+    ],
+    "gach_ngang_dai": true,
+    "markdown": true
+  }
+}

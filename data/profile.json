@@ -1,0 +1,18 @@
+{
+  "ten_xa": "An Lão",
+  "co_quan_cap_tren": "CÔNG AN TP HẢI PHÒNG",
+  "cap_tren_ten": "Công an thành phố Hải Phòng",
+  "ten_don_vi": "CÔNG AN XÃ AN LÃO",
+  "ky_hieu": "KH-CAAL",
+  "nam": "2026",
+  "tieu_de": "Thực hiện Nghị quyết của Đảng ủy Công an thành phố về tăng cường sự lãnh đạo của Đảng đối với công tác quản lý, giải quyết các vụ án, vụ việc tạm đình chỉ giai đoạn 2026-2027",
+  "doan_mo_dau": "Thực hiện Kế hoạch số 9366/KH-CAHP(PC01) ngày 22/07/2026 của Công an thành phố về việc thực hiện Nghị quyết số 1832-NQ/ĐUCA ngày 22 tháng 7 năm 2026 của Đảng ủy Công an thành phố Hải Phòng về tăng cường sự lãnh đạo của Đảng đối với công tác quản lý, giải quyết các vụ án, vụ việc tạm đình chỉ trong Công an thành phố Hải Phòng giai đoạn 2026-2027. Công an xã An Lão xây dựng Kế hoạch thực hiện với các nội dung sau đây:",
+  "chuc_danh_ky": "TRƯỞNG CÔNG AN XÃ",
+  "noi_nhan": "- Công an thành phố (qua Phòng PC01) (để báo cáo);\n- Lưu: VT.",
+  "ngay_ban_hanh": "",
+  "thay_the": [
+    ["Công an các đơn vị, địa phương", "Công an xã {ten_xa}"]
+  ],
+  "model": "qwen2.5:3b",
+  "ollama_host": "http://127.0.0.1:11434"
+}

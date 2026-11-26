@@ -1,0 +1,14 @@
+# Dữ liệu nghiệp vụ trên máy người dùng: không bao giờ đưa lên GitHub
+work/
+# File lớn tải bằng chuan_bi_ai.bat
+ai/
+wheels/
+# Môi trường và bản đóng gói
+.venv/
+.venv-build/
+build/
+dist/
+python/
+__pycache__/
+*.pyc
+*.zip

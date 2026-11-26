@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Lập kế hoạch Công an xã</title>
+<style>
+  :root { --b:#d0d5dd; --muted:#667085; --pri:#1d4ed8; --warn:#fef3c7; --bad:#fee2e2; }
+  * { box-sizing: border-box; }
+  body { font: 15px/1.45 "Segoe UI", Arial, sans-serif; margin: 0; background: #f6f7f9; color: #101828; }
+  header { background: #0f2a5f; color: #fff; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; }
+  header small { opacity: .8; }
+  main { max-width: 1280px; margin: 0 auto; padding: 16px 24px 80px; }
+  .card { background: #fff; border: 1px solid var(--b); border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; }
+  h2 { font-size: 17px; margin: 0 0 10px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+  label { font-size: 13px; color: var(--muted); display: block; }
+  input, textarea, select { width: 100%; font: inherit; padding: 6px 8px; border: 1px solid var(--b); border-radius: 6px; }
+  textarea { min-height: 120px; resize: vertical; }
+  button { font: inherit; padding: 7px 14px; border-radius: 6px; border: 1px solid var(--b); background: #fff; cursor: pointer; }
+  button.pri { background: var(--pri); color: #fff; border-color: var(--pri); }
+  button:disabled { opacity: .5; cursor: default; }
+  .sec { border-left: 4px solid var(--b); }
+  .sec.drop { opacity: .55; }
+  .sec.l1 { border-left-color: #0f2a5f; } .sec.l2 { border-left-color: #3b82f6; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+  .orig { white-space: pre-wrap; background: #f9fafb; border: 1px solid #eaecf0; border-radius: 6px; padding: 8px; font-size: 14px; max-height: 260px; overflow: auto; }
+  .tag { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 10px; margin: 2px 4px 2px 0; }
+  .t-style { background: #ffedd5; }
+  .t-warn { background: var(--warn); } .t-bad { background: var(--bad); } .t-ok { background: #dcfce7; } .t-ai { background: #e0e7ff; }
+  .muted { color: var(--muted); font-size: 13px; }
+  #status { position: fixed; bottom: 0; left: 0; right: 0; background: #101828; color: #fff; padding: 8px 24px; font-size: 14px; display: none; }
+  .title-in { font-weight: 600; }
+</style>
+</head>
+<body>
+<header>
+  <div><b>Lập kế hoạch Công an xã</b> &nbsp; <a href="/giaoban" style="color:#fff">Giao ban hằng ngày</a> <small>· chạy trên máy này, không gửi dữ liệu ra ngoài</small></div>
+  <div id="ai-state" class="muted"></div>
+</header>
+<main>
+  <div class="card">
+    <h2>1. Kế hoạch cấp trên</h2>
+    <div class="row">
+      <input type="file" id="file" multiple accept=".docx,.pdf,.txt,.jpg,.jpeg,.png" style="width:auto">
+      <button class="pri" onclick="upload()">Đọc tài liệu</button>
+      <button onclick="toggle('paste')">Dán văn bản</button>
+      <button onclick="resetAll()">Làm lại từ đầu</button>
+    </div>
+    <p class="muted">Ảnh chụp: chọn các trang theo đúng thứ tự. Mỗi trang ảnh mất khoảng 10–30 giây để nhận dạng chữ.
+      Nên dùng file Word/PDF gốc nếu có — ảnh chụp dễ đọc sai số (vd. 15/8 thành 13/8).</p>
+    <div id="paste" style="display:none"><textarea id="pastetext" placeholder="Dán nội dung kế hoạch cấp trên..."></textarea>
+      <button onclick="paste()">Thêm văn bản</button></div>
+    <div id="files" class="muted"></div>
+  </div>
+
+  <div class="card">
+    <h2>2. Kho tài liệu tham khảo <span class="muted">(nghị quyết, quy định, hướng dẫn, tài liệu nội bộ)</span></h2>
+    <div class="row">
+      <input type="file" id="libfile" multiple accept=".docx,.pdf,.txt,.jpg,.jpeg,.png" style="width:auto">
+      <button class="pri" onclick="libUpload()">Thêm vào kho</button>
+      <button onclick="toggle('libpaste')">Dán văn bản</button>
+    </div>
+    <p class="muted">Kho được giữ lại cho mọi kế hoạch sau. Khi viết lại một mục, AI tự lấy vài đoạn liên quan nhất trong kho làm căn cứ.
+      Mỗi file ảnh là một trang; nên đặt tên file rõ ràng, ví dụ "NQ 1832-NQ-DUCA trang 1.jpg".</p>
+    <div id="libpaste" style="display:none">
+      <input id="libpname" placeholder="Tên tài liệu, ví dụ: Hướng dẫn 273/HD-VPCQCSĐT" style="margin-bottom:6px">
+      <textarea id="libptext" placeholder="Dán nội dung tài liệu..."></textarea>
+      <button onclick="libPaste()">Thêm vào kho</button></div>
+    <div id="lib"></div>
+  </div>
+
+  <div class="card">
+    <h2>3. Thông tin Công an xã</h2>
+    <div class="grid" id="prof"></div>
+    <div class="row" style="margin-top:8px"><button onclick="saveProfile()">Lưu thông tin</button>
+      <span class="muted">Ngày đối chiếu thời hạn: <b id="refdate"></b> (để trống "Ngày ban hành" = hôm nay)</span></div>
+  </div>
+
+  <div class="card">
+    <h2>4. Cách AI viết</h2>
+    <p class="muted">Lời dặn AI đọc trước khi viết mọi mục: văn phong, quy tắc, điều cấm. Sửa tuỳ ý rồi bấm Lưu; áp dụng cho các lần AI viết sau.</p>
+    <textarea id="prompt" style="min-height:220px;font-size:14px"></textarea>
+    <div class="row" style="margin-top:8px">
+      <button class="pri" onclick="savePrompt()">Lưu cách viết</button>
+      <button onclick="resetPrompt()">Khôi phục mặc định</button>
+      <span class="muted" id="prompt-state"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>5. Chuyển từng mục sang cấp xã</h2>
+    <div class="row">
+      <button id="btn-ai-all" onclick="rewriteAll()">AI viết lại tất cả mục "Viết lại"</button>
+      <span class="muted">Ô <span class="tag t-warn">vàng</span> = có nhiệm vụ của cấp trên cần xem lại.
+        <span class="tag t-bad">đỏ</span> = thời hạn đã qua hoặc AI thêm số không có trong bản gốc.
+        <span class="tag t-style">cam</span> = dấu hiệu văn AI cần sửa tay.</span>
+    </div>
+    <div id="secs" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card">
+    <h2>6. Xuất văn bản</h2>
+    <div class="row"><button class="pri" onclick="location.href='/api/export'">Tải bản Word</button>
+      <span class="muted">Cụm từ cần kiểm tra được tô vàng trong file Word. Bản này là dự thảo, cần cán bộ duyệt trước khi ban hành.</span></div>
+  </div>
+</main>
+<div id="status"></div>
+
+<script>
+const FIELDS = [
+  ["ten_xa","Tên xã"], ["ten_don_vi","Tên đơn vị (in hoa)"], ["co_quan_cap_tren","Cơ quan cấp trên (in hoa)"],
+  ["cap_tren_ten","Tên cơ quan cấp trên"], ["ky_hieu","Ký hiệu văn bản (vd KH-CAAL)"], ["nam","Năm"],
+  ["chuc_danh_ky","Chức danh người ký"], ["ngay_ban_hanh","Ngày ban hành (dd/mm/yyyy)"],
+  ["model","Mô hình AI (chỉ khi dùng Ollama)"], ["tieu_de","Trích yếu kế hoạch", 1], ["doan_mo_dau","Đoạn mở đầu (căn cứ)", 1],
+  ["noi_nhan","Nơi nhận (mỗi dòng một nơi)", 1], ["thay_the","Thay thế cụm từ (mỗi dòng: cụm gốc => cụm mới; {ten_xa} = tên xã)", 1],
+];
+let S = null;
+const $ = id => document.getElementById(id);
+const esc = s => (s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function status(t){ const e=$("status"); e.style.display=t?"block":"none"; e.textContent=t||""; }
+async function api(path, body){
+  const r = await fetch(path, body===undefined ? {} : {method:"POST", body: typeof body==="string"||body instanceof Blob ? body : JSON.stringify(body)});
+  const j = await r.json(); if (j.error) { alert(j.error); throw j.error; } return j;
+}
+async function load(){ S = await api("/api/state"); render(); }
+
+function render(){
+  $("files").textContent = S.files.length ? "Đã đọc: " + S.files.join(", ") : "Chưa có tài liệu.";
+  $("refdate").textContent = S.ref_date;
+  const ok = S.ai.ready || S.profile.model === "fake";
+  $("ai-state").innerHTML = "AI cục bộ: <b>" + esc(S.ai.label) + "</b>";
+  $("btn-ai-all").disabled = !ok;
+  $("lib").innerHTML = S.library.length
+    ? '<table style="width:100%;border-collapse:collapse;font-size:14px;margin-top:8px">' +
+      '<tr style="text-align:left;color:#667085"><th>Tài liệu</th><th>Số đoạn</th><th>Ngày thêm</th><th></th></tr>' +
+      S.library.map(d=>`<tr style="border-top:1px solid #eaecf0"><td>${esc(d.name)}</td><td>${d.chunks}</td><td>${esc(d.added)}</td>
+        <td style="text-align:right"><button onclick="libDelete('${d.id}', '${esc(d.name).replace(/'/g,"")}')">Xoá</button></td></tr>`).join("") + "</table>"
+    : '<p class="muted">Kho đang trống.</p>';
+  if (document.activeElement !== $("prompt")) $("prompt").value = S.profile.prompt_he_thong || S.default_prompt;
+  $("prompt-state").textContent = S.profile.prompt_he_thong ? "Đang dùng lời dặn đã sửa." : "Đang dùng lời dặn mặc định.";
+  $("prof").innerHTML = FIELDS.map(([k,lab,big]) => {
+    let v = S.profile[k]; if (k==="thay_the") v = (v||[]).map(p=>p.join(" => ")).join("\n");
+    return `<div style="${big?'grid-column:1/3':''}"><label>${lab}</label>` +
+      (big ? `<textarea id="p_${k}" style="min-height:60px">${esc(v)}</textarea>` : `<input id="p_${k}" value="${esc(v)}">`) + `</div>`;
+  }).join("");
+  $("secs").innerHTML = S.sections.length ? S.sections.map(secHtml).join("") : '<p class="muted">Chưa có mục nào.</p>';
+}
+
+function secHtml(s){
+  const tags = [];
+  if (s.flags.length) tags.push(`<span class="tag t-warn">Cấp trên: ${esc(s.flags.join(", "))}</span>`);
+  s.deadlines.forEach(d => tags.push(`<span class="tag ${d.overdue?'t-bad':'t-ok'}">${esc(d.text)} → ${d.date}${d.overdue?' (đã qua)':''}</span>`));
+  if (s.ai) tags.push(`<span class="tag t-ai">AI đã viết lại</span>`);
+  s.van_phong.forEach(v => tags.push(`<span class="tag t-style">Văn phong: ${esc(v)}</span>`));
+  if (s.refs.length) tags.push(`<span class="tag t-ai">Căn cứ AI đã dùng: ${esc(s.refs.join("; "))}</span>`);
+  if (s.new_numbers.length) tags.push(`<span class="tag t-bad">Số mới không có trong bản gốc: ${esc(s.new_numbers.join(", "))}</span>`);
+  const aiOk = S.ai.ready || S.profile.model === "fake";
+  return `<div class="card sec l${s.level} ${s.action==='drop'?'drop':''}">
+    <div class="row"><b>${esc(s.num)}</b>
+      <input class="title-in" style="flex:1" value="${esc(s.title)}" onchange="decide('${s.id}',{title:this.value})">
+      <select style="width:auto" onchange="decide('${s.id}',{action:this.value},true)">
+        ${[["keep","Giữ nguyên"],["rewrite","Viết lại cho cấp xã"],["drop","Bỏ mục này"]].map(([v,l])=>`<option value="${v}" ${s.action===v?'selected':''}>${l}</option>`).join("")}
+      </select>
+      <button ${aiOk?'':'disabled'} onclick="rewrite(['${s.id}'])">AI viết lại</button>
+    </div>
+    <div>${tags.join("")}</div>
+    <input style="margin-top:6px" placeholder="Yêu cầu riêng cho AI ở mục này (tuỳ chọn), ví dụ: viết ngắn gọn 3 ý, nêu rõ Trưởng Công an xã chủ trì"
+      value="${esc(s.yeu_cau)}" onchange="decide('${s.id}',{yeu_cau:this.value})">
+    <div class="cols">
+      <div><label>Bản cấp trên (đã nhận dạng)</label><div class="orig">${esc(s.orig)}</div></div>
+      <div><label>Bản cấp xã (sửa trực tiếp; mỗi dòng là một đoạn)</label>
+        <textarea onchange="decide('${s.id}',{text:this.value})">${esc(s.text)}</textarea></div>
+    </div></div>`;
+}
+
+async function decide(id, d, rerender){ await api("/api/decide", {id, ...d}); if (rerender) load(); }
+async function saveProfile(){
+  const o = {};
+  FIELDS.forEach(([k]) => { const v = $("p_"+k).value;
+    o[k] = k==="thay_the" ? v.split("\n").filter(x=>x.includes("=>")).map(x=>x.split("=>").map(y=>y.trim())) : v; });
+  await api("/api/profile", o); await load(); status("Đã lưu thông tin."); setTimeout(()=>status(""),1500);
+}
+async function upload(){
+  const fs = [...$("file").files]; if (!fs.length) return alert("Chọn file trước.");
+  for (let i=0;i<fs.length;i++){ status(`Đang đọc ${fs[i].name} (${i+1}/${fs.length})...`);
+    await api("/api/upload?name="+encodeURIComponent(fs[i].name), fs[i]); }
+  status(""); load();
+}
+function toggle(id){ const e=$(id); e.style.display = e.style.display==="none"?"block":"none"; }
+async function libUpload(){
+  const fs = [...$("libfile").files]; if (!fs.length) return alert("Chọn file trước.");
+  for (let i=0;i<fs.length;i++){ status(`Đang đọc ${fs[i].name} vào kho (${i+1}/${fs.length})...`);
+    await api("/api/lib/upload?name="+encodeURIComponent(fs[i].name), fs[i]); }
+  $("libfile").value=""; status(""); load();
+}
+async function libPaste(){
+  if (!$("libptext").value.trim()) return;
+  await api("/api/lib/paste", {name:$("libpname").value.trim(), text:$("libptext").value});
+  $("libpname").value=""; $("libptext").value=""; load();
+}
+async function libDelete(id, name){ if (confirm("Xoá khỏi kho: "+name+"?")) { await api("/api/lib/delete",{id}); load(); } }
+async function savePrompt(){
+  const v = $("prompt").value.trim();
+  await api("/api/profile", {prompt_he_thong: v === S.default_prompt.trim() ? "" : v}); await load();
+  status("Đã lưu cách viết."); setTimeout(()=>status(""),1500);
+}
+async function resetPrompt(){ if (confirm("Khôi phục lời dặn mặc định?")) { await api("/api/profile",{prompt_he_thong:""}); load(); } }
+async function paste(){ await api("/api/paste", {text:$("pastetext").value}); $("pastetext").value=""; load(); }
+async function resetAll(){ if (confirm("Xoá tài liệu đã đọc và mọi chỉnh sửa?")) { await api("/api/reset", {}); load(); } }
+function rewriteAll(){ rewrite(S.sections.filter(s=>s.action==="rewrite").map(s=>s.id)); }
+async function rewrite(ids){
+  if (!ids.length) return;
+  const {job} = await api("/api/rewrite", {ids});
+  const t0 = Date.now();
+  while (true){
+    await new Promise(r=>setTimeout(r,2000));
+    const j = await api("/api/job?id="+job);
+    const cur = S.sections.find(s=>s.id===j.current);
+    status(`AI đang viết lại ${j.done}/${j.total}` + (cur?` — mục ${cur.num}`:"") + ` — ${Math.round((Date.now()-t0)/1000)} giây. Máy yếu nên mỗi mục có thể mất vài phút.`);
+    if (j.finished){ status(j.log.filter(x=>x.includes("LỖI")).join(" | ")); load(); if(!j.log.some(x=>x.includes("LỖI"))) setTimeout(()=>status(""),1500); break; }
+  }
+}
+load();
+</script>
+</body>
+</html>
