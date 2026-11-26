@@ -1,0 +1,119 @@
+{
+ "cau_hinh": {
+  "co_quan": "CÔNG AN XÃ AN LÃO",
+  "to": "TỔ PCTP",
+  "dia_danh": "An Lão",
+  "dia_diem": "phòng làm việc Tổ Phòng chống tội phạm Công an xã An Lão, thành phố Hải Phòng",
+  "ten_to": "Tổ Phòng chống tội phạm - Công an xã An Lão",
+  "gio_bat_dau": "07h30'",
+  "gio_ket_thuc": "08h30'",
+  "chu_toa": "27a6f7c3",
+  "thu_ky": "",
+  "so_nguoi_y_kien": 2,
+  "noi_dung_mac_dinh": "Đ/c chủ tọa đánh giá nhận xét công tác đã làm được của CBCS trong tổ. Đ/c chủ tọa yêu cầu các đồng chí ca trực báo cáo tình hình ca trực, tuần tra kiểm soát theo kế hoạch của Công an xã An Lão có phát sinh vụ việc nào không.",
+  "ket_luan_mac_dinh": "Đ/c chủ tọa nhất trí với các ý kiến tham gia. Yêu cầu CBCS thực hiện nghiêm các văn bản đã quán triệt và thực hiện theo đúng quy định của pháp luật."
+ },
+ "thong_bao": {
+  "bat": true,
+  "gio_gui": "07:00",
+  "dinh_kem": true,
+  "email": {
+   "bat": true,
+   "smtp": "smtp.gmail.com",
+   "cong": 465,
+   "tai_khoan": "a@gmail.com",
+   "mat_khau": "x",
+   "nguoi_nhan": "b@x.vn, c@x.vn"
+  },
+  "telegram": {
+   "bat": true,
+   "token": "T",
+   "chat_ids": "123"
+  },
+  "da_gui": "",
+  "nhat_ky": [
+   "26/11 17:41 Email: đã gửi tới 2 địa chỉ; Telegram: đã gửi tới 123",
+   "26/11 17:41 (thử) Email: đã gửi tới 2 địa chỉ; Telegram: đã gửi tới 123"
+  ]
+ },
+ "thanh_vien": [
+  {
+   "id": "27a6f7c3",
+   "ten": "Lê Tuấn Anh",
+   "chuc_vu": "Phó trưởng",
+   "luan_phien": true,
+   "vang_dai_ngay": "",
+   "y_kien": []
+  },
+  {
+   "id": "1c6357fd",
+   "ten": "Ngô Thanh Sơn",
+   "chuc_vu": "",
+   "luan_phien": true,
+   "vang_dai_ngay": "",
+   "y_kien": [
+    "Nhất trí."
+   ]
+  },
+  {
+   "id": "ed393b37",
+   "ten": "Đinh Quang Nam",
+   "chuc_vu": "",
+   "luan_phien": true,
+   "vang_dai_ngay": "",
+   "y_kien": [
+    "Đề nghị tăng tuần tra."
+   ]
+  }
+ ],
+ "hang_doi": [
+  "27a6f7c3",
+  "1c6357fd",
+  "ed393b37"
+ ],
+ "lich_su": {
+  "2026-11-27": {
+   "ngay": "2026-11-27",
+   "vang": [],
+   "noi_dung": "Đ/c chủ tọa đánh giá nhận xét công tác đã làm được của CBCS trong tổ. Đ/c chủ tọa yêu cầu các đồng chí ca trực báo cáo tình hình ca trực, tuần tra kiểm soát theo kế hoạch của Công an xã An Lão có phát sinh vụ việc nào không.",
+   "phat_bieu": [
+    {
+     "id": "1c6357fd",
+     "y_kien_idx": 0,
+     "text": "Nhất trí."
+    },
+    {
+     "id": "ed393b37",
+     "y_kien_idx": 0,
+     "text": "Đề nghị tăng tuần tra."
+    }
+   ],
+   "ket_luan": "Đ/c chủ tọa nhất trí với các ý kiến tham gia. Yêu cầu CBCS thực hiện nghiêm các văn bản đã quán triệt và thực hiện theo đúng quy định của pháp luật.",
+   "them": "",
+   "gio_bat_dau": "07h30'",
+   "gio_ket_thuc": "08h30'",
+   "chu_toa": "27a6f7c3",
+   "thu_ky": "",
+   "hang_doi_truoc": [
+    "27a6f7c3",
+    "1c6357fd",
+    "ed393b37"
+   ],
+   "ten_snapshot": {
+    "27a6f7c3": {
+     "ten": "Lê Tuấn Anh",
+     "chuc_vu": "Phó trưởng"
+    },
+    "1c6357fd": {
+     "ten": "Ngô Thanh Sơn",
+     "chuc_vu": ""
+    },
+    "ed393b37": {
+     "ten": "Đinh Quang Nam",
+     "chuc_vu": ""
+    }
+   },
+   "tong_so": 3
+  }
+ }
+}

@@ -35,25 +35,35 @@ def send_email(cfg: dict, subject: str, body: str, attachment: Path | None = Non
         main, sub = ctype.split("/", 1)
         msg.add_attachment(attachment.read_bytes(), maintype=main, subtype=sub, filename=attachment.name)
     host, port = cfg.get("smtp", "smtp.gmail.com"), int(cfg.get("cong", 465) or 465)
-    err = None
-    for ctx in _contexts():
-        try:
-            if port == 465:
-                with smtplib.SMTP_SSL(host, port, context=ctx, timeout=TIMEOUT) as s:
-                    s.login(cfg["tai_khoan"], cfg["mat_khau"])
-                    s.send_message(msg)
-            else:
-                with smtplib.SMTP(host, port, timeout=TIMEOUT) as s:
+    # Thử cổng đã chọn trước, rồi cổng còn lại (465 SSL / 587 STARTTLS): nhiều mạng hoặc phần mềm
+    # diệt virus chặn/cắt một trong hai cổng ("Connection unexpectedly closed").
+    ports = [port] + [p for p in (465, 587) if p != port]
+    errors = []
+    for prt in ports:
+        for ctx in _contexts():
+            try:
+                if prt == 465:
+                    s = smtplib.SMTP_SSL(host, prt, context=ctx, timeout=TIMEOUT)
+                else:
+                    s = smtplib.SMTP(host, prt, timeout=TIMEOUT)
+                    s.ehlo()
                     s.starttls(context=ctx)
+                    s.ehlo()
+                with s:
                     s.login(cfg["tai_khoan"], cfg["mat_khau"])
                     s.send_message(msg)
-            return len(to)
-        except ssl.SSLError as e:
-            err = e
-        except smtplib.SMTPAuthenticationError:
-            raise ValueError("Email: sai tài khoản hoặc mật khẩu ứng dụng. Với Gmail phải dùng "
-                             "'Mật khẩu ứng dụng' 16 ký tự, không dùng mật khẩu đăng nhập.") from None
-    raise err
+                return len(to)
+            except smtplib.SMTPAuthenticationError:
+                raise ValueError("Email: sai tài khoản hoặc mật khẩu ứng dụng. Với Gmail phải dùng "
+                                 "'Mật khẩu ứng dụng' 16 ký tự, không dùng mật khẩu đăng nhập.") from None
+            except ssl.SSLError as e:
+                errors.append(f"cổng {prt}: {e}")
+                continue          # thử lại với kiểm tra chứng chỉ nới hơn
+            except (smtplib.SMTPException, OSError) as e:
+                errors.append(f"cổng {prt}: {e}")
+                break             # lỗi kết nối: chuyển sang cổng khác
+    raise ValueError("Không kết nối được máy chủ email (" + "; ".join(errors) + "). Mạng hoặc phần mềm diệt "
+                     "virus đang chặn gửi thư: thử tắt tạm tính năng quét email/Mail Shield, hoặc đổi mạng.")
 
 
 # ---------------------------------------------------------------- telegram
